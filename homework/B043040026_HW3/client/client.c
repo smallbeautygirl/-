@@ -51,18 +51,27 @@ int main(void){
                 perror("connect error");
                 exit(1);
             }
-
+            if(write(fd,split_word[3],sizeof(split_word[3])))//傳使用者名稱
+            {
+                break;
+            }
             printf("The server with IP \"%s\" has accepted your connection\n", split_word[1]);
+
         }
         else if(strcmp(split_word[0],"chat")==0){
             if(fd == -1){
                 printf("Please connect first\n");
             }
             else{
-                write(fd,split_word[3],sizeof(split_word[3]));//傳使用者名稱
+                
                 
             }
-
+        }
+        else if (strcmp(split_word[0], "bye") == 0)
+        {
+            printf("Goodbye.\n");
+            close(fd);
+            break;
         }
     }
     return 0;

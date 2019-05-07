@@ -26,17 +26,18 @@ int main(int argc,char **argv){
     int newfd;              /* returned by accept() */
     struct sockaddr_in srv; //used by bind()
     struct sockaddr_in cli; //used by accept()
+    //struct ifreq ifr;//used by get server ip
     char buf[SIZE];            //used by read()
     int cli_len = sizeof(cli); //used by accept()
     int nbytes;                //used by read()
     int server_port = atoi(argv[1]);
-
-    if(argc !=2){
+    if (argc != 2)
+    {
         fprintf(stderr, "[error] usage: ./Server [port]\n");
         exit(1);
     }
 
-    fd = socket(AF_INET,SOCK_STREAM,0);
+    fd = socket(AF_INET, SOCK_STREAM, 0);
     /*socket procedure*/
     if (fd < 0)
     {
@@ -57,7 +58,7 @@ int main(int argc,char **argv){
         exit(1);
     }
 
-     /*listen procedure*/
+    /*listen procedure*/
     if (listen(fd, 5) > 0)
     { //"5" specifies the maximum number of connections that kernel should queue for this socket .
         perror("listen error");
@@ -83,15 +84,34 @@ int main(int argc,char **argv){
 }
 
 void *run(void *all){
-    struct run_argument run_arg = *(struct run_argument *)all;
+   struct run_argument run_arg = *(struct run_argument *)all;
     struct sockaddr_in cli = run_arg.run_cli;
     char *cli_ip = inet_ntoa(cli.sin_addr); //將 network address 由 struct in_addr 轉換為句號與數字組成的字串格式
     int cli_port = ntohs(cli.sin_port);
-    FILE *database = NULL;
-    database = fopen("database","wb");
-
-    while(1){
-        unsigned char buf[SIZE]={'\0'};//要用成unsigned不然傳過去的資料會錯誤
-
-    }
+    printf("A client \"%s\" has connected via port num %d using SOCK_STREAM(TCP)\n", cli_ip, cli_port);
+    printf("111");
+    // read(run_arg.run_fd,username,20);//收使用者名稱
+    // printf("1111");
+    // printf("%s",username);
+    //database = fopen("database","a");
+    //fwrite(cli_ip, sizeof(char), sizeof(cli_ip), database);
+    //fclose(database);
+    //while(1){
+        
+        // unsigned char buf[SIZE]={'\0'};//要用成unsigned不然傳過去的資料會錯誤
+        
+        
+        // FILE * database = NULL;
+        // database = fopen("database","r");
+        // //char temp = '\0';
+        // char *temp_name=NULL;
+        // while(fgets(temp_name,20,database)!= NULL){
+        //     if(strcmp(temp_name,username)==0){
+        //         printf("%s",cli_ip);
+        //         break;
+        //     }
+        //     //fwrite(cli_ip, sizeof(char), sizeof(cli_ip), database);
+        // }
+        // fclose(database);
+    //}
 }
