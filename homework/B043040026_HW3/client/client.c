@@ -12,7 +12,7 @@
 /*require (1.socket() 2.connect() 3.write())build up a TCP client*/
 int mwrite(int sockfd, const void *buf, size_t len);
 int mread(int sockfd, void *buf, size_t len);
-int split(char *input, char split_word[10][64]);
+int split(char *input, char split_word[10][100]);
 void *msgread(void *fd); //一直收訊息
 
 int main(void)
@@ -27,9 +27,9 @@ int main(void)
     while (1)
     {
         char input[64] = {'\0'}; //the user's input
-        char split_word[10][64] = {'\0'};
+        char split_word[10][100] = {'\0'};
         int countword = 0; //count how many words the user enter
-
+        int IsWrongChat = 0;
         printf("$");
         fgets(input, 64, stdin);
         countword = split(input, split_word);
@@ -67,21 +67,29 @@ int main(void)
         }
         else if (strcmp(split_word[0], "chat") == 0)
         {
+            if (countword < 3)
+            {
+                printf("Please enter othername and message!!\n");
+                IsWrongChat = 1;
+            }
             if (fd == -1)
             {
                 printf("Please connect first\n");
             }
             else
             {
-                int howmanypeople = countword - 2;                 //要傳訊息給幾個人
-                mwrite(fd, &howmanypeople, sizeof(howmanypeople)); //傳要傳訊息給幾個人
-                for (int i = 1; i <= howmanypeople; ++i)
+                if (IsWrongChat == 0)
                 {
-                    mwrite(fd, split_word[i], sizeof(split_word[i])); //傳每個要收的人的名字
-                    //printf("%s\n", split_word[i]);
+                    int howmanypeople = countword - 2;                 //要傳訊息給幾個人
+                    mwrite(fd, &howmanypeople, sizeof(howmanypeople)); //傳要傳訊息給幾個人
+                    for (int i = 1; i <= howmanypeople; ++i)
+                    {
+                        mwrite(fd, split_word[i], sizeof(split_word[i])); //傳每個要收的人的名字
+                        //printf("%s\n", split_word[i]);
+                    }
+                    mwrite(fd, split_word[countword - 1], sizeof(split_word[countword - 1])); //傳訊息
+                    //printf("%s\n", split_word[countword - 1]);
                 }
-                mwrite(fd, split_word[countword - 1], sizeof(split_word[countword - 1])); //傳訊息
-                //printf("%s\n", split_word[countword - 1]);
             }
         }
         else if (strcmp(split_word[0], "bye") == 0)
@@ -147,7 +155,7 @@ int mread(int sockfd, void *buf, size_t len)
         return 0; /* socket is closed, read 0 bytes. */
 }
 
-int split(char *input, char split_word[10][64])
+int split(char *input, char split_word[10][100])
 {
     int i = 0, j = 0, k = 0;
     int count = 1;
@@ -174,7 +182,7 @@ int split(char *input, char split_word[10][64])
 void *msgread(void *fd)
 {
     int socket_fd = *(int *)fd;
-    char message[64] = {'\0'};
+    char message[100] = {'\0'};
     while (1)
     {
         mread(socket_fd, message, sizeof(message));
