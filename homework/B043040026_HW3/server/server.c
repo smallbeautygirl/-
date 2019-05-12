@@ -103,7 +103,7 @@ void *run(void *all)
     char username[100] = {'\0'};
     char IsOnline[10] = {"on-line"};
     int fdindex = 0;
-    char *wday[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+    char *wday[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     time_t timep;
     struct tm *p;
     time(&timep);
@@ -154,8 +154,7 @@ void *run(void *all)
         char usernotfind[100] = {'\0'};
         int IsClosefd = 0;
         char from[100] = {""};
-        char timerecord[100]={""};//紀錄現在時間
-        
+        char timerecord[100] = {""}; //紀錄現在時間
 
         IsClosefd = mread(run_arg.run_fd, &howmanypeople, sizeof(howmanypeople)); //收要傳訊息給幾個人
         if (IsClosefd == 0)
@@ -180,12 +179,12 @@ void *run(void *all)
 
         mread(run_arg.run_fd, message, sizeof(message));
         printf("message: %s\n", message);
-        sprintf(timerecord,"%d %d %d %s %d:%d:%d",(1900+p->tm_year),(1+p-> tm_mon), p->tm_mday,wday[p->tm_wday],p->tm_hour, p->tm_min, p->tm_sec);
-        sprintf(from, "    message sent by \"%s\" at %s", username,timerecord);
-        
+        sprintf(timerecord, "%d %d %d %s %d:%d:%d", (1900 + p->tm_year), (1 + p->tm_mon), p->tm_mday, wday[p->tm_wday], p->tm_hour, p->tm_min, p->tm_sec);
+        sprintf(from, "    message sent by \"%s\" at %s", username, timerecord);
+
         for (int i = 0; i < howmanypeople; ++i)
         {
-            char useroffline[100]={'\0'};
+            char useroffline[100] = {'\0'};
             for (int j = 0; j < FD_NUMBER; ++j)
             {
                 if ((strcmp(othername[i], "") != 0) && (strcmp(othername[i], database[j]) == 0)) //若在database找到這個人
@@ -194,9 +193,8 @@ void *run(void *all)
                     if (storefd[j] == -1) //若對方離線了
                     {
                         strcpy(off_lineMessage[j], message); //先把訊息暫存起來
-                        sprintf(useroffline,"<User %s is off-line. The message will be passed when he comes back.>",othername[i]);
-                        mwrite(run_arg.run_fd,useroffline,sizeof(useroffline));
-                        
+                        sprintf(useroffline, "<User %s is off-line. The message will be passed when he comes back.>", othername[i]);
+                        mwrite(run_arg.run_fd, useroffline, sizeof(useroffline));
                     }
                     else //對方在線上
                     {
