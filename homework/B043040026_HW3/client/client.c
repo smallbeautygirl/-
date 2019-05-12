@@ -30,7 +30,7 @@ int main(void)
         char split_word[10][100] = {'\0'};
         int countword = 0; //count how many words the user enter
         int IsWrongChat = 0;
-        printf("$");
+        printf("$ ");
         fgets(input, 64, stdin);
         countword = split(input, split_word);
 
@@ -185,7 +185,8 @@ void *msgread(void *fd)
     char message[100] = {'\0'};
     while (1)
     {
+        setbuf(stdout, NULL);                              //因為 printf 其實只是把東西放到 buffer 當中而不會立刻顯示，而預設的 stdout 是 line buffered，所以只有當遇到 '\n' 才會清空 buffer 把內容印出來
         mread(socket_fd, message, sizeof(message));
-        printf("%s\n", message);
+        printf("\r%s\n$ ", message);
     }
 }
