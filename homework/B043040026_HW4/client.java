@@ -172,10 +172,10 @@ public class client {
             if (i % 3 == 0) {
               lable[i].setBounds(175, 250 + distance, 300, 60);
             } else if (i % 3 == 2) {
-              lable[i].setBounds(375, 250 + distance, 300, 60);
+              lable[i].setBounds(725, 250 + distance, 300, 60);
               distance += 50;
             } else {
-              lable[i].setBounds(725, 250 + distance, 300, 60);
+              lable[i].setBounds(375, 250 + distance, 300, 60);
             }
             container.add(lable[i]);
           }

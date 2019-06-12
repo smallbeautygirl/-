@@ -455,39 +455,112 @@ public class server {
             int location = 0;// initialize move location
     
             if(this.storeLocation.contains(0)&&this.storeLocation.contains(1)&&this.storeLocation.contains(2)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
               break;
             }else if(this.storeLocation.contains(3)&&this.storeLocation.contains(4)&&this.storeLocation.contains(5)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
+              break;
             }else if(this.storeLocation.contains(6)&&this.storeLocation.contains(7)&&this.storeLocation.contains(8)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
+              break;
             }else if(this.storeLocation.contains(0)&&this.storeLocation.contains(3)&&this.storeLocation.contains(6)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
+              break;
             }else if(this.storeLocation.contains(1)&&this.storeLocation.contains(4)&&this.storeLocation.contains(7)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
+              break;
             }else if(this.storeLocation.contains(2)&&this.storeLocation.contains(5)&&this.storeLocation.contains(8)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
+              break;
             }else if(this.storeLocation.contains(0)&&this.storeLocation.contains(4)&&this.storeLocation.contains(8)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
+              break;
             }else if(this.storeLocation.contains(2)&&this.storeLocation.contains(4)&&this.storeLocation.contains(6)){
+              for(int i=0;i<databases.size();++i){
+                if(databases.get(i).getAccount().equals(this.name)){
+                  databases.get(i).setWin(1);
+                }
+              }
               displayMessage("\n"+this.name+" win!!\n");
               output.format(this.name+" win!!\n");
               output.flush();
+              for(int i =0;i<databases.size();++i){
+                databases.get(i).setState("offline");
+              }
+              break;
             }
+
             if (input.hasNext()) {
               location = input.nextInt();// get move location
             }
@@ -546,11 +619,11 @@ public class server {
     }
 
     public void setWin(int win) {
-      this.win = win;
+      this.win += win;
     }
 
     public void setLose(int lose) {
-      this.lose = lose;
+      this.lose += lose;
     }
 
     public void setSocket(Socket socket) {
