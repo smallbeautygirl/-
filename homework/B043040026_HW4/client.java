@@ -1,19 +1,25 @@
 
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.*;
+
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.*;
 import javax.swing.*;
 import java.io.DataInputStream;
@@ -26,6 +32,8 @@ public class client {
   private Socket clientSocket;
   private DataInputStream dataInputStream;
   private DataOutputStream dataOutputStream;
+  private ArrayList waitInformation = new ArrayList<>();
+  private String myName = "";
 
   public static void main(String[] args) {
     try {
@@ -66,7 +74,8 @@ public class client {
     this.dataOutputStream.writeUTF(message);
   }
 
-  class waitingroom extends JFrame {
+  class recevewait extends Thread {
+    private Container container;
     private JLabel waitingroomLabel = new JLabel("Welcom to waiting room!!");
     private JTable waitTable;
     private JLabel colAccount = new JLabel("Name");
@@ -74,63 +83,308 @@ public class client {
     private JLabel colLose = new JLabel("Number of loses");
     private Vector rowData = new Vector<String>();
     private Vector colData = new Vector<String>();
+    private JButton start = new JButton("start");
+  
+    private int count =0;
+    public recevewait(Container container) {
+      this.count=0;
+      this.container = container;
+      System.out.println("recevewait");
+      // 設定jbutton
+      this.start.addActionListener(new ActionListener() {
+        //private int flag;
+
+        public void actionPerformed(ActionEvent e) {
+          if (waitInformation.size() >= 6) {// 若waiting room裡有兩人以上，就可以開始玩
+            try {
+              sendData(myName);// 傳自己是誰
+              System.out.println(myName);
+              sendData("start");// 告訴server 我開始了
+              System.out.println("start");
+            } catch (IOException e1) {
+              // TODO Auto-generated catch block
+              e1.printStackTrace();
+            }
+            TicTacToe tic = new TicTacToe();
+          } else {
+            JOptionPane.showMessageDialog(null, "Please wait other player!!");
+          }
+        }
+      });
+    }
+
+    public void run() {
+      int tag = 0;
+      while (true) {
+        try {
+          String data = dataInputStream.readUTF();
+          System.out.println(data);
+          if(data.equals("end")){
+            System.out.println("end wait thread");
+              return;
+          }
+          this.container.removeAll();
+          // 設定title lable
+          this.waitingroomLabel.setFont(new Font("Arial", 1, 50));
+          this.waitingroomLabel.setBounds(220, 100, 1000, 80);
+
+          // 設定label
+          this.colAccount.setFont(new Font("Arial", 0, 35));
+          this.colWin.setFont(new Font("Arial", 0, 35));
+          this.colLose.setFont(new Font("Arial", 0, 35));
+          this.colAccount.setBounds(175, 200, 300, 60);
+          this.colWin.setBounds(375, 200, 300, 60);
+          this.colLose.setBounds(725, 200, 300, 60);
+
+          this.start.setFont(new Font("Arial", 0, 35));
+          this.start.setBounds(500, 650, 200, 60);
+
+          this.container.add(this.waitingroomLabel);
+          this.container.add(this.colAccount);
+          this.container.add(this.colWin);
+          this.container.add(this.colLose);
+          this.container.add(this.start);
+
+          boolean IsExist = false;
+
+          if (data.length() >= 3) {
+            for (int i = 0; i < waitInformation.size(); i += 3) {
+              if (waitInformation.get(i).equals(data)) {// 如果account已經存在就不用加進去arraylist了
+                IsExist = true;
+                tag = 0;
+                break;
+              }
+            }
+            if (!IsExist) {
+              tag = 1;// name不存在arraylist裡
+            }
+          }
+          if (tag == 1) {
+            waitInformation.add(data);
+          }
+
+          JLabel[] lable = new JLabel[waitInformation.size()];
+          System.out.println(waitInformation.size());
+          int distance = 0;
+          for (int i = 0; i < waitInformation.size(); ++i) {
+            lable[i] = new JLabel(waitInformation.get(i).toString());
+            lable[i].setFont(new Font("Arial", 0, 35));
+            if (i % 3 == 0) {
+              lable[i].setBounds(175, 250 + distance, 300, 60);
+            } else if (i % 3 == 2) {
+              lable[i].setBounds(375, 250 + distance, 300, 60);
+              distance += 50;
+            } else {
+              lable[i].setBounds(725, 250 + distance, 300, 60);
+            }
+            container.add(lable[i]);
+          }
+
+          this.container.revalidate();
+          this.container.repaint();
+
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
+  class TicTacToe extends JFrame implements Runnable {
+    private JTextField idField;// textfield to display player's mark
+    private JTextArea displayArea;// JTextArea to display output
+    private JPanel boardPanel;// panel for tic-tac-toe board
+    private JPanel panel2;// panel to hold board
+    private Square[][] board;// tic-tac-toe board
+    private Square currentSquare;// current square
+    private Scanner input;// input from server
+    private Formatter output;// output to server
+    private final String X_MARK = "X";// mark for first client
+    private final String O_MARK = "O";// mark for second client
+    private boolean myTurn;
+    private String myMark;
+
+    // set up tic-tac-toe server and GUI that displays messages
+    public TicTacToe(){
+      super(myName);
+      this.displayArea = new JTextArea(4, 30);// set up JTextArea
+      this.displayArea.setEditable(false);
+      add(new JScrollPane(this.displayArea), BorderLayout.SOUTH);
+
+      this.boardPanel = new JPanel();// set up panel for square in board
+      this.boardPanel.setLayout(new GridLayout(3, 3, 0, 0));
+
+      board = new Square[3][3];// create square
+
+      for (int row = 0; row < board.length; row++) {
+        for (int column = 0; column < board[row].length; column++) {
+          // create square
+          board[row][column] = new Square(" ", row * 3 + column);
+          boardPanel.add(board[row][column]);// add square
+        }
+      }
+
+      idField = new JTextField();
+      idField.setEditable(false);
+      add(idField, BorderLayout.NORTH);
+
+      panel2 = new JPanel();
+      panel2.add(boardPanel, BorderLayout.CENTER);
+      add(panel2, BorderLayout.CENTER);
+
+      setSize(300, 225);
+      this.setLocationRelativeTo(null); // -->設定開啟的位置和某個物件相同，帶入null則會在畫面中間開啟
+      setVisible(true);
+      startClient();
+    }// end Tic constructor
+
+    public void startClient() {
+      System.out.println("startClient constructor");
+      try {
+        // get streams for intput and output
+        input = new Scanner(clientSocket.getInputStream());
+        output = new Formatter(clientSocket.getOutputStream());
+      } catch (IOException ioException) {
+        ioException.printStackTrace();
+      }
+      ExecutorService worker = Executors.newFixedThreadPool(1);
+      worker.execute(this);
+    }
+
+    public void run() {
+      System.out.println("play");
+      myMark = input.nextLine();// get player's mark(O or X)
+      System.out.println("Mymark is "+myMark);
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          // display player's mark
+          idField.setText("You are player \"" + myMark + "\"");
+        }
+      });
+
+      myTurn = (myMark.equals(X_MARK));
+      while (true) {
+        if (input.hasNextLine()) {
+          processMessage(input.nextLine());
+        }
+      }
+    }
+
+    // process message received by client
+    private void processMessage(String message) {
+      // valid move occured
+      if (message.equals("Valid move")) {
+        displayMessage("Valid move, please wait.\n");
+        setMark(currentSquare, myMark);
+      } else if (message.equals("InValid move, try again")) {
+        displayMessage(message + "\n");// display invalid move
+        myTurn = true;
+      } else if (message.equals("Opponent moved")) {
+        int location = input.nextInt();
+        input.nextLine();
+        int row = location / 3;
+        int column = location % 3;
+
+        setMark(board[row][column], (myMark.equals(X_MARK) ? O_MARK : X_MARK));
+        displayMessage("Opponent moved. Your turn\n");
+        myTurn = true;
+      } else {
+        displayMessage(message + "\n");
+      }
+
+    }
+
+    private void displayMessage(final String messageToDisplay) {
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          displayArea.append(messageToDisplay);// update output
+        }
+      });
+    }
+
+    private void setMark(final Square squareToMark, final String mark) {
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          squareToMark.setMark(mark);// set mark in square
+        }
+      });
+    }
+
+    public void sendClickedSquare(int location) {
+      if (myTurn) {
+        output.format("%d\n", location);// send location to server
+        output.flush();
+        myTurn = false;
+      }
+    }
+
+    public void setCurrentSquare(Square square) {
+      this.currentSquare = square;
+    }
+
+    private class Square extends JPanel {
+      private String mark;// mark to be drawn in this square
+      private int location;// location of square
+
+      public Square(String squareMark, int squareLocation) {
+        this.mark = squareMark;
+        this.location = squareLocation;
+
+        addMouseListener(new MouseAdapter() {
+          public void mouseReleased(MouseEvent e) {
+            setCurrentSquare(Square.this);
+
+            // send location of this square
+            sendClickedSquare(getSquareLocation());
+          }
+        });
+      }
+
+      // return preferred size of square
+      public Dimension getPreferredSize() {
+        return new Dimension(30, 30);
+      }
+
+      // return minimum size of square
+      public Dimension getMinimumSize() {
+        return getPreferredSize();
+      }
+
+      // set mark for Square
+      public void setMark(String newMark) {
+        this.mark = newMark;
+        repaint();// repaint square
+      }
+
+      // return square location
+      public int getSquareLocation() {
+        return this.location;
+      }
+
+      // draw Square
+      public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        g.drawRect(0, 0, 29, 29);// draw square 29 29
+        g.drawString(this.mark, 11, 20);// draw mark 11 20
+      }
+    }
+  }
+
+  class waitingroom extends JFrame {
 
     public waitingroom() throws NumberFormatException, IOException {
       super("Waiting room");
-      setSize(1200, 800);
-      setLocationRelativeTo(null); // -->設定開啟的位置和某個物件相同，帶入null則會在畫面中間開啟
-      setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);// DISPOSE_ON_CLOSE：點選關閉時，關閉顯示的視窗以及使用的資源，程式仍在背景執行
-      setVisible(true);
+      this.setSize(1200, 800);
+      this.setLocationRelativeTo(null); // -->設定開啟的位置和某個物件相同，帶入null則會在畫面中間開啟
+      this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);// DISPOSE_ON_CLOSE：點選關閉時，關閉顯示的視窗以及使用的資源，程式仍在背景執行
+      this.setVisible(true);
 
-      // 收幾個人wait和他們的資訊
-      int countwait = 0;
-      ArrayList waitInformation = new ArrayList<String>();
-      String waitAccount = null;
-      String waitWin = null;
-      String waitLose = null;
-      countwait = Integer.valueOf(dataInputStream.readUTF());
-      for (int i = 0; i < countwait; ++i) {
-        waitAccount = dataInputStream.readUTF();
-        waitWin = dataInputStream.readUTF();
-        waitLose = dataInputStream.readUTF();
-        waitInformation.add(waitAccount);
-        waitInformation.add(waitWin);
-        waitInformation.add(waitLose);
-      }
-
-      // 建立Jtable
-      this.colData.add("Name");
-      this.colData.add("Number of win");
-      this.colData.add("Number of lose");
-      for(int i=0;i<countwait;++i){
-        this.rowData.add(waitInformation.get(i));
-        this.rowData.add(waitInformation.get(i+1));
-        this.rowData.add(waitInformation.get(i+2));
-      }
-      this.waitTable = new JTable(rowData, colData);// 建立一个具有countwait+1列，3行的空表格
-      this.waitTable.setFont(new Font("Arial",0,25));
-      //this.waitTable.setBounds(250,200);
       // 容器
       Container waitroomContainer = getContentPane();
       waitroomContainer.setLayout(null);
-
-      // 設定title lable
-      this.waitingroomLabel.setFont(new Font("Arial", 1, 50));
-      this.waitingroomLabel.setBounds(220, 100, 1000, 80);
-
-      // 設定label
-      this.colAccount.setFont(new Font("Arial", 0, 35));
-      this.colWin.setFont(new Font("Arial", 0, 35));
-      this.colLose.setFont(new Font("Arial", 0, 35));
-      this.colAccount.setBounds(175, 200, 300, 60);
-      this.colWin.setBounds(375, 200, 300, 60);
-      this.colLose.setBounds(725, 200, 300, 60);
-
-      waitroomContainer.add(this.waitingroomLabel);
-      // waitroomContainer.add(this.colAccount);
-      // waitroomContainer.add(this.colWin);
-      // waitroomContainer.add(this.colLose);
-      waitroomContainer.add(this.waitTable);
+      recevewait rewait = new recevewait(waitroomContainer);
+      rewait.start();
     }
   }
 
@@ -182,6 +436,7 @@ public class client {
             String AccountIsExist = null;
             AccountIsExist = dataInputStream.readUTF();
             if (AccountIsExist.equals("true")) {
+              myName = account;
               waitingroom wr = new waitingroom();// 進入waiting room
             } else {
               JOptionPane.showMessageDialog(null, "Your account is not exist\nPlease create account first!!");
@@ -261,6 +516,7 @@ public class client {
             if (AccountIsExist.equals("true")) {
               JOptionPane.showMessageDialog(null, "Your account is already exist\nPlease sign in!!");
             } else {
+              myName = account;
               waitingroom wr = new waitingroom();// 進入waiting room
             }
             // System.out.println("account: " + account + " password: " + password);
