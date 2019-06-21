@@ -208,7 +208,7 @@ public class server {
         String start = null;
         String name = null;
         Socket player = null;
-        
+
 
         name = dataInputStream.readUTF();
         //if(one){
@@ -225,7 +225,7 @@ public class server {
             }
           }
           play.checkIftwoPlayer(player,name);
-          
+
         }
         // while(true){}
       } catch (IOException e1) {
@@ -453,7 +453,7 @@ public class server {
           // while game not over
           while (!isGameOver()) {
             int location = 0;// initialize move location
-    
+
             if(this.storeLocation.contains(0)&&this.storeLocation.contains(1)&&this.storeLocation.contains(2)){
               for(int i=0;i<databases.size();++i){
                 if(databases.get(i).getAccount().equals(this.name)){
